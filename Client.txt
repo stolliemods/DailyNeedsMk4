@@ -1,0 +1,199 @@
+using System;
+using System.Text;
+using Sandbox.ModAPI;
+using VRage.Game.ModAPI;
+using VRage.Game.Components;
+using VRage.Game;
+using VRage.Library.Utils;	// For MyGameModeEnum
+using Draygo.API;
+using VRageMath;
+
+namespace Rek.FoodSystem
+{
+	[MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
+	public class Client : MySessionComponentBase
+	{
+		private bool mStarted = false;
+		private IMyHudNotification mNotify = null;
+		private PlayerData mPlayerData = null;
+		private HUDTextAPI mHud;
+
+		private void onMessageEntered(string messageText, ref bool sendToOthers)
+		{
+			sendToOthers = true;
+
+			if (!messageText.StartsWith("/")) return;
+
+			var words = messageText.Trim().ToLower().Replace("/", "").Split(' ');
+
+			if (words.Length > 0)
+			{
+				switch (words[0])
+				{
+					case "food":
+						if (MyAPIGateway.Session.SessionSettings.GameMode == MyGameModeEnum.Creative) MyAPIGateway.Utilities.ShowMessage("FoodSystem", "Hunger, thirst and fatigue are disabled in creative mode.");
+						else if (mPlayerData != null)
+						{
+							if (mPlayerData.fatigue<9000)
+							{
+								if (words.Length > 1 && words[1] == "detail") MyAPIGateway.Utilities.ShowMessage("FoodSystem", "Hunger: " + mPlayerData.hunger + "% Thirst: " + mPlayerData.thirst + "% Fatigue: " + mPlayerData.fatigue + "%");
+								else MyAPIGateway.Utilities.ShowMessage("FoodSystem", "Hunger: " + Math.Floor(mPlayerData.hunger) + "% Thirst: " + Math.Floor(mPlayerData.thirst) + "% Fatigue: "+ Math.Floor(mPlayerData.fatigue)+"%");
+							}
+							else
+							{
+								if (words.Length > 1 && words[1] == "detail") MyAPIGateway.Utilities.ShowMessage("FoodSystem", "Hunger: " + mPlayerData.hunger + "% Thirst: " + mPlayerData.thirst + "%");
+								else MyAPIGateway.Utilities.ShowMessage("FoodSystem", "Hunger: " + Math.Floor(mPlayerData.hunger) + "% Thirst: " + Math.Floor(mPlayerData.thirst) + "%");
+							}
+						}
+						break;
+
+						/*
+                    case "debug":
+                        if (words.Length > 1 && words[1] == "sun") MyAPIGateway.Utilities.ShowMessage("FoodSystem", "Sun rotation interval: " + MyAPIGateway.Session.SessionSettings.SunRotationIntervalMinutes);
+                        else if (words.Length > 1 && words[1] == "world") MyAPIGateway.Utilities.ShowMessage("FoodSystem", "World name: " + MyAPIGateway.Session.Name);
+                        break;
+						 */
+
+					case "needs":
+						sendToOthers = false;
+						if (words.Length > 1) {
+							Command cmd = new Command(MyAPIGateway.Multiplayer.MyId, words[1]);
+
+							string message = MyAPIGateway.Utilities.SerializeToXML<Command>(cmd);
+							MyAPIGateway.Multiplayer.SendMessageToServer(
+								1338,
+								Encoding.Unicode.GetBytes(message)
+							);
+						}
+						break;
+				}
+			}
+		}
+
+		private void init()
+		{
+			mHud = new HUDTextAPI(591816613);
+
+			if (Utils.isDev())
+			{
+				MyAPIGateway.Utilities.ShowMessage("CLIENT", "INIT");
+			}
+
+			MyAPIGateway.Utilities.MessageEntered += onMessageEntered;
+
+			MyAPIGateway.Multiplayer.RegisterMessageHandler(1337, FoodUpdateMsgHandler);
+		}
+
+		private void ShowNotification(string text, MyFontEnum color)
+		{
+			if (mNotify == null)
+			{
+				mNotify = MyAPIGateway.Utilities.CreateNotification(text, 10000, MyFontEnum.Red);
+			}
+			else
+			{
+				mNotify.Text = text;
+				mNotify.ResetAliveTime();
+			}
+
+			mNotify.Show();
+		}
+
+		private void FoodUpdateMsgHandler(byte[] data)
+		{
+            //MyAPIGateway.Utilities.ShowMessage("Debug", "Heartbeat: " + mHud.Heartbeat);
+            mPlayerData = MyAPIGateway.Utilities.SerializeFromXML<PlayerData>(Encoding.Unicode.GetString(data));
+
+            //MyAPIGateway.Utilities.ShowMessage("FoodSystem", "Hunger: " + Math.Floor(mPlayerData.hunger) + "% Thirst: " + Math.Floor(mPlayerData.thirst) + "%");
+
+			if (mPlayerData.thirst <= 1 && mPlayerData.hunger <= 1)
+			{
+				ShowNotification("Warning: You are Thirsty (" + Math.Floor(mPlayerData.thirst) + "%) and Hungry (" + Math.Floor(mPlayerData.hunger) + "%)", MyFontEnum.Red);
+			}
+			else if (mPlayerData.thirst <= 1)
+			{
+				ShowNotification("Warning: You are Thirsty (" + Math.Floor(mPlayerData.thirst) + "%)", MyFontEnum.Red);
+			}
+			else if (mPlayerData.hunger <= 1)
+			{
+				ShowNotification("Warning: You are Hungry (" + Math.Floor(mPlayerData.hunger) + "%)", MyFontEnum.Red);
+			}
+
+			if (mHud.Heartbeat)
+			{
+				
+				const string yellow = "<color=200,200,0>";
+				const string red="<color=255,0,0>";
+				const string green="<color=0,255,0>";
+				const string blue="<color=0,127,255>";
+				const string white="<color=255,255,255>";
+				const string grey="<color=192,192,192>";
+				string numbercol = blue;
+				if (mPlayerData.thirst <= 100)
+					numbercol=green;
+				if (mPlayerData.thirst <= 30)
+					numbercol=yellow;
+				if (mPlayerData.thirst <= 0)
+					numbercol=red;
+				mHud.CreateAndSend(1, (mPlayerData.thirst <= 1) ? 10 : 1000, new Vector2D(-0.98f, -0.15f), "" + ((mPlayerData.fatigue <= 0) ? yellow : grey) + "Thirst: " + numbercol + Math.Floor(mPlayerData.thirst) + "%");
+				numbercol=blue;
+				if (mPlayerData.hunger <= 100)
+					numbercol=green;
+				if (mPlayerData.hunger <= 30)
+					numbercol=yellow;
+				if (mPlayerData.hunger <= 0)
+					numbercol=red;
+				mHud.CreateAndSend(2, (mPlayerData.hunger <= 1) ? 10 : 1000, new Vector2D(-0.98f, -0.2f), "" + grey + "Hunger: " + numbercol + Math.Floor(mPlayerData.hunger) + "%");
+				if (mPlayerData.fatigue < 9000f)
+				{
+					numbercol=blue;
+					if (mPlayerData.fatigue <= 100)
+						numbercol=green;
+					if (mPlayerData.fatigue <= 0)
+						numbercol=yellow;
+					if (mPlayerData.fatigue <= -50)
+						numbercol=red;
+					mHud.CreateAndSend(3, 1000, new Vector2D(-0.98f, -0.25f), "" + grey + "Fatigue: " + numbercol + Math.Floor(mPlayerData.fatigue) + "% ");
+				}
+				
+			}
+		}
+
+		public override void UpdateAfterSimulation()
+		{
+			if (MyAPIGateway.Session == null)
+				return;
+
+			try
+			{
+				var isHost = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
+
+				var isDedicatedHost = isHost && MyAPIGateway.Utilities.IsDedicated;
+
+				if (isDedicatedHost)
+					return;
+
+				if (!mStarted)
+				{
+					mStarted = true;
+					init();
+				}
+			}
+			catch (Exception e)
+			{
+				//MyLog.Default.WriteLineAndConsole("(FoodSystem) Error: " + e.Message + "\n" + e.StackTrace);
+				MyAPIGateway.Utilities.ShowMessage("Error", e.Message + "\n" + e.StackTrace);
+			}
+		}
+
+		protected override void UnloadData() // will act up without the try-catches. yes it's ugly and slow. it only gets called on disconnect so we don't care
+		{
+			try{
+			try{mHud.Close();}catch(Exception e){MyAPIGateway.Utilities.ShowMessage("Error", e.Message + "\n" + e.StackTrace);};
+			try{mStarted = false;}catch(Exception e){MyAPIGateway.Utilities.ShowMessage("Error", e.Message + "\n" + e.StackTrace);};
+			try{MyAPIGateway.Multiplayer.UnregisterMessageHandler(1337, FoodUpdateMsgHandler);}catch(Exception e){MyAPIGateway.Utilities.ShowMessage("Error", e.Message + "\n" + e.StackTrace);};
+			try{MyAPIGateway.Utilities.MessageEntered -= onMessageEntered;}catch(Exception e){MyAPIGateway.Utilities.ShowMessage("Error", e.Message + "\n" + e.StackTrace);};
+			}catch (Exception e){};
+		}
+	}
+}
