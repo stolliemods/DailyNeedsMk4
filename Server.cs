@@ -746,14 +746,14 @@ namespace Stollie.DailyNeeds
                     {
                         playerData.hunger -= mHungerPerMinute / 10 * CurrentModifier;
                         playerData.hunger = Math.Max(playerData.hunger, MIN_VALUE);
-                        MyVisualScriptLogicProvider.SendChatMessage("Hunger: " + playerData.hunger.ToString());
+                        // MyVisualScriptLogicProvider.SendChatMessage("Hunger: " + playerData.hunger.ToString());
                     }
 
                     // Default Values: 300 (Config value) / 120 (DayLength) / 12 (Amount of 5 seconds) * 1.0f (Current Modifier)
                     if (playerData.thirst > MIN_VALUE) {
                         playerData.thirst -= mThirstPerMinute / 12  * CurrentModifier;
 						playerData.thirst = Math.Max(playerData.thirst, MIN_VALUE);
-                        MyVisualScriptLogicProvider.SendChatMessage("Thirst: " + playerData.thirst.ToString());
+                        // MyVisualScriptLogicProvider.SendChatMessage("Thirst: " + playerData.thirst.ToString());
                     }
 
 					// Try to meet needs
