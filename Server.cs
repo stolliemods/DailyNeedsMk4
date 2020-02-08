@@ -423,9 +423,7 @@ namespace Stollie.DailyNeeds
 			MyObjectBuilder_Character character;
 			MyCharacterMovementEnum curmove = MyCharacterMovementEnum.Sitting;
 
-
 			foreach (IMyPlayer player in mPlayers) {
-				
 				
 				if (player.Controller != null && player.Controller.ControlledEntity != null && player.Controller.ControlledEntity.Entity != null && player.Controller.ControlledEntity.Entity.DisplayName != "") {
 
@@ -743,21 +741,20 @@ namespace Stollie.DailyNeeds
 						}
 					}
 
-                    if (playerData.hunger > MIN_VALUE)
+					// Default Values: 100 (Config value) / 120 (DayLength) / 12 (Amount of 5 seconds) * 1.0f (Current Modifier)
+					if (playerData.hunger > MIN_VALUE)
                     {
-                        // We update every second - at default values this is 100 / 120 / 60 * 1 = 0.0138 thirst per second
-                        // Config value / Default Day Length / Sixty Seconds * Multiplier = Thirst per second
-                        playerData.hunger -= mHungerPerMinute / 60 * CurrentModifier;
+                        playerData.hunger -= mHungerPerMinute / 10 * CurrentModifier;
                         playerData.hunger = Math.Max(playerData.hunger, MIN_VALUE);
+                        MyVisualScriptLogicProvider.SendChatMessage("Hunger: " + playerData.hunger.ToString());
                     }
 
+                    // Default Values: 300 (Config value) / 120 (DayLength) / 12 (Amount of 5 seconds) * 1.0f (Current Modifier)
                     if (playerData.thirst > MIN_VALUE) {
-                        // We update every second - at default values this is 50 / 120 / 60 * 1 = 0.0069 hunger per second 
-                        // Config value / Default Day Length / Sixty Seconds * Multiplier = Hunger per second
-                        playerData.thirst -= mThirstPerMinute / 60 * CurrentModifier;
+                        playerData.thirst -= mThirstPerMinute / 12  * CurrentModifier;
 						playerData.thirst = Math.Max(playerData.thirst, MIN_VALUE);
-                        MyVisualScriptLogicProvider.SendChatMessage(playerData.thirst.ToString());
-					}
+                        MyVisualScriptLogicProvider.SendChatMessage("Thirst: " + playerData.thirst.ToString());
+                    }
 
 					// Try to meet needs
 					if (playerData.hunger < (MAX_VALUE * HUNGRY_WHEN) || ForceEating)
