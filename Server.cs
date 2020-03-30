@@ -481,13 +481,9 @@ namespace Stollie.DailyNeeds
 						}
 
                         // Determines what values you re-spawn with.
-                        if (dead)
+                        if (playerData.dead)
                         {
-                            playerData.hunger = RESPAWN_HUNGER;
-                            playerData.thirst = RESPAWN_THIRST;
-                            playerData.fatigue = RESPAWN_FATIGUE;
-                            dead = false;
-
+                            playerData.dead = false;
                         }
 
                         //MyAPIGateway.Utilities.ShowMessage("DEBUG", "State: " + character.MovementState + ":" + playerData.lastmovement);
@@ -612,7 +608,10 @@ namespace Stollie.DailyNeeds
 							case MyCharacterMovementEnum.Died:
 								CurrentModifier = DEFAULT_MODIFIER; // unused, but let's have them
 								FatigueRate = FATIGUE_STANDING; // unused, but let's have them
-								dead = true; // for death recovery logic
+								playerData.hunger = RESPAWN_HUNGER;
+								playerData.thirst = RESPAWN_THIRST;
+								playerData.fatigue = RESPAWN_FATIGUE;
+								playerData.dead = true; // for death recovery logic
 								break;
 
 						}
@@ -797,7 +796,7 @@ namespace Stollie.DailyNeeds
 					}
 					 */
 
-					if (dead && DEATH_RECOVERY > 0.0) {
+					if (playerData.dead && DEATH_RECOVERY > 0.0) {
 						MyInventoryBase inventory = ((MyEntity)entity).GetInventoryBase();
 						if (playerData.hunger > 0)
 							inventory.AddItems((MyFixedPoint)((1f / MAX_VALUE) * DEATH_RECOVERY * (playerData.hunger)), new MyObjectBuilder_Ore() { SubtypeName = "Organic" });

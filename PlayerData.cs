@@ -9,6 +9,7 @@ namespace Stollie.DailyNeeds {
         public float hunger;
         public float thirst;
         public float fatigue;
+        public bool dead;
 
         [XmlIgnoreAttribute]
         public VRage.Game.MyCharacterMovementEnum lastmovement;
@@ -25,6 +26,7 @@ namespace Stollie.DailyNeeds {
             hunger = 100;
             fatigue = 100;
             lastmovement = 0;
+            dead = false;
             entity = null;
             steamid = id;
             loaded = false;
@@ -35,6 +37,7 @@ namespace Stollie.DailyNeeds {
             hunger = 100;
             fatigue = 100;
             lastmovement = 0;
+            dead = false;
             entity = null;
             loaded = false;
         }
