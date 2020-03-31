@@ -155,7 +155,7 @@ namespace Stollie.DailyNeeds
 		{
 			if (mNotify == null)
 			{
-				mNotify = MyAPIGateway.Utilities.CreateNotification(text, 10000, MyFontEnum.Red);
+				mNotify = MyAPIGateway.Utilities.CreateNotification(text, 5000, MyFontEnum.Red);
 			}
 			else
 			{
@@ -183,6 +183,12 @@ namespace Stollie.DailyNeeds
 
                 if (mPlayerData != null && TextAPI.Heartbeat)
 	            {
+                    if (mPlayerData.dead)
+                    {
+                        ShowNotification(
+                            "Clone sickness will cause increased hunger, thirst and fatigue..",
+                            MyFontEnum.Red);
+                    }
                     if (mPlayerData.thirst <= 1 && mPlayerData.hunger <= 1)
                     {
                         ShowNotification(

@@ -443,8 +443,6 @@ namespace Stollie.DailyNeeds
 					bool HungerBonus = false;
 					bool ThirstBonus = false;
 					
-                   
-
 					// if we were under the effects of a bonus, keep it until we no longer are
 					if (playerData.fatigue > MAX_VALUE)
 						FatigueBonus = true;
@@ -457,37 +455,41 @@ namespace Stollie.DailyNeeds
 						character = entity.GetObjectBuilder(false) as MyObjectBuilder_Character;
 						//MyAPIGateway.Utilities.ShowMessage("DEBUG", "State: " + character.MovementState);
 						
-						if (playerData.entity == null || playerData.entity.Closed || playerData.entity.EntityId != entity.EntityId) {
+						if (playerData.entity == null || playerData.entity.Closed || playerData.entity.EntityId != entity.EntityId)
+						{
 							bool bReset = false;
-
-							if (!playerData.loaded) {
+							
+							if (!playerData.loaded)
+							{
 								bReset = true;
 								playerData.loaded = true;
 							}
                             else if ((playerData.entity != null) && (playerData.entity != entity))
                             {
-                                bReset = true;
+								bReset = true;
                             }
-								
-                            // Determines what values you start a new game / playerDataStore with.
-                            if (bReset) 
-{
+
+							// Stores values you start a new game / playerDataStore with.
+							if (bReset)
+							{
 								playerData.hunger = STARTING_HUNGER;
 								playerData.thirst = STARTING_THIRST;
 								playerData.fatigue = STARTING_FATIGUE;
 							}
-							
 							playerData.entity = entity;
 						}
 
-                        // Determines what values you re-spawn with.
-                        if (playerData.dead)
-                        {
-                            playerData.dead = false;
-                        }
+						// Determines what values you re-spawn with.
+						if (playerData.dead)
+						{
+							playerData.hunger = RESPAWN_HUNGER;
+							playerData.thirst = RESPAWN_THIRST;
+							playerData.fatigue = RESPAWN_FATIGUE;
+							playerData.dead = false;
+						}
 
-                        //MyAPIGateway.Utilities.ShowMessage("DEBUG", "State: " + character.MovementState + ":" + playerData.lastmovement);
-                        ChangedStance = playerData.lastmovement != character.MovementState;
+						//MyAPIGateway.Utilities.ShowMessage("DEBUG", "State: " + character.MovementState + ":" + playerData.lastmovement);
+						ChangedStance = playerData.lastmovement != character.MovementState;
 						
 						curmove = character.MovementState;
 
@@ -608,10 +610,7 @@ namespace Stollie.DailyNeeds
 							case MyCharacterMovementEnum.Died:
 								CurrentModifier = DEFAULT_MODIFIER; // unused, but let's have them
 								FatigueRate = FATIGUE_STANDING; // unused, but let's have them
-								playerData.hunger = RESPAWN_HUNGER;
-								playerData.thirst = RESPAWN_THIRST;
-								playerData.fatigue = RESPAWN_FATIGUE;
-								playerData.dead = true; // for death recovery logic
+								playerData.dead = true; // for death recovery logic								
 								break;
 
 						}
