@@ -296,9 +296,8 @@ namespace Stollie.DailyNeeds
 
             MyAPIGateway.Multiplayer.RegisterMessageHandler(1338, AdminCommandHandler);
 			MyAPIGateway.Utilities.RegisterMessageHandler(1339, NeedsApiHandler);
-
+			
 			// Minimum of 2h, because it's unplayable under....
-
 			dayLen = Math.Max(MyAPIGateway.Session.SessionSettings.SunRotationIntervalMinutes, 120f);
 			IsAutohealingOn = MyAPIGateway.Session.SessionSettings.AutoHealing;
 
@@ -397,7 +396,6 @@ namespace Stollie.DailyNeeds
 		}
 
 		// Update the player list
-
 		private void updatePlayerList()
 		{
 			mPlayers.Clear();

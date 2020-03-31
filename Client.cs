@@ -13,6 +13,7 @@ using VRageMath;
 using VRageRender;
 using VRage.Utils;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
+using Sandbox.Game;
 
 namespace Stollie.DailyNeeds
 {
@@ -103,6 +104,7 @@ namespace Stollie.DailyNeeds
 
 			MyAPIGateway.Utilities.MessageEntered += onMessageEntered;
 			MyAPIGateway.Multiplayer.RegisterMessageHandler(1337, FoodUpdateMsgHandler);
+            MyVisualScriptLogicProvider.PlayerSpawned += PlayerSpawned;
 
             mConfigDataStore.Load();
             HUNGER_ICON_POSITION_X = mConfigDataStore.get_HUNGER_ICON_POSITION_X();
@@ -120,7 +122,12 @@ namespace Stollie.DailyNeeds
             fatigueIconPositionY = FATIGUE_ICON_POSITION_Y;
         }
 
-	    public override void UpdateAfterSimulation()
+        private void PlayerSpawned(long playerId)
+        {
+            MyVisualScriptLogicProvider.ShowNotification("Clone sickness will cause increased hunger, thirst and fatigue..", 5000, MyFontEnum.Green, playerId);
+        }
+
+        public override void UpdateAfterSimulation()
 	    {
 	        if (MyAPIGateway.Session == null)
 	            return;
@@ -183,12 +190,6 @@ namespace Stollie.DailyNeeds
 
                 if (mPlayerData != null && TextAPI.Heartbeat)
 	            {
-                    if (mPlayerData.dead)
-                    {
-                        ShowNotification(
-                            "Clone sickness will cause increased hunger, thirst and fatigue..",
-                            MyFontEnum.Red);
-                    }
                     if (mPlayerData.thirst <= 1 && mPlayerData.hunger <= 1)
                     {
                         ShowNotification(
@@ -707,8 +708,14 @@ namespace Stollie.DailyNeeds
 		        {
 		            MyAPIGateway.Utilities.ShowMessage("Error", e.Message + "\n" + e.StackTrace);
 		        }
-
-		        ;
+                try
+                {
+                    MyVisualScriptLogicProvider.PlayerSpawned -= PlayerSpawned;
+                }
+                catch (Exception e)
+                {
+                    MyAPIGateway.Utilities.ShowMessage("Error", e.Message + "\n" + e.StackTrace);
+                };
 			try
 			{
 			Logging.Instance.Close();
